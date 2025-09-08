@@ -36,52 +36,23 @@ class CameraOptimizer(nn.Module):
         
         # Create adjustments module
         self.adjustments = Adjustments(self.num_cameras, device)
-        
-    def get_corrected_intrinsics(self, camera_idx: int) -> torch.Tensor:
-        """Get corrected intrinsic matrix for a specific camera."""
-        # Original noisy intrinsics
-        orig_cam = self.noisy_cameras[camera_idx]
-        original_intrinsics = {
-            'fx': orig_cam.fx,
-            'fy': orig_cam.fy,
-            'cx': orig_cam.cx,
-            'cy': orig_cam.cy
-        }
-        
-        # Apply learned adjustments
-        return self.adjustments.apply_intrinsic_adjustments(camera_idx, original_intrinsics)
-    
-    def get_corrected_extrinsics(self, camera_idx: int) -> Tuple[torch.Tensor, torch.Tensor]:
-        """Get corrected rotation matrix and translation vector for a specific camera."""
-        # Original noisy extrinsics
-        orig_cam = self.noisy_cameras[camera_idx]
-        R_orig = torch.tensor(orig_cam.R, device=self.device, dtype=torch.float32)
-        t_orig = torch.tensor(orig_cam.t.flatten(), device=self.device, dtype=torch.float32)
-        
-        # Apply learned adjustments
-        return self.adjustments.apply_extrinsic_adjustments(camera_idx, R_orig, t_orig)
-    
-    def project_point(self, X_world: torch.Tensor, camera_idx: int) -> torch.Tensor:
+           
+    def project_points(self, X_world: torch.Tensor, camera_indices: torch.Tensor) -> torch.Tensor:
         """Project a 3D point using corrected camera parameters."""
-        # Get corrected parameters
-        K = self.get_corrected_intrinsics(camera_idx)
-        R, t = self.get_corrected_extrinsics(camera_idx)
+        projected_pixels = []
+        for id, cam in enumerate(camera_indices):
+            # Get adjustments for this camera
+            intrinsic_deltas = self.adjustments.get_intrinsic_adjustments(cam)
+            rotation_deltas, translation_deltas = self.adjustments.get_extrinsic_adjustments(cam)
+            
+            # Use the camera's projection method with corrections
+            camera = self.noisy_cameras[cam]
+            px = camera.project_to_image_with_corrections(
+                X_world[id], intrinsic_deltas, rotation_deltas, translation_deltas
+            )
+            projected_pixels.append(px)
         
-        # Transform to camera coordinates
-        X_cam = R @ X_world + t.unsqueeze(1)
-        
-        # Check for points behind camera
-        z = X_cam[2, :]
-        if torch.any(z <= 0):
-            # Return large error for points behind camera
-            return torch.full((X_world.shape[1], 2), 1e6, device=self.device)
-        
-        # Project to image plane
-        x_proj = K @ X_cam
-        u = x_proj[0, :] / x_proj[2, :]
-        v = x_proj[1, :] / x_proj[2, :]
-        
-        return torch.stack([u, v], dim=1)
+        return torch.stack(projected_pixels, dim=0)
 
 
 class ProjectionDataset(Dataset):
@@ -97,12 +68,10 @@ class ProjectionDataset(Dataset):
     
     def __getitem__(self, idx):
         item = self.data[idx]
-        world_point = torch.tensor(item['world_point'], device=self.device, dtype=torch.float32)
-        pixel_coords = torch.tensor(item['pixel'], device=self.device, dtype=torch.float32)
+        world_points = torch.tensor(item['world_points'], device=self.device, dtype=torch.float32)
+        pixel_coords = torch.tensor(item['pixels'], device=self.device, dtype=torch.float32)
         camera_idx = self.camera_id_to_idx[item['camera_id']]
-        
-        return world_point, pixel_coords, camera_idx
-
+        return world_points, pixel_coords, camera_idx
 
 def load_data(noisy_cameras_file: str, projection_results_file: str):
     """Load noisy cameras and projection results."""
@@ -132,17 +101,14 @@ def train_model(model: CameraOptimizer, dataloader: DataLoader, num_epochs: int 
         total_loss = 0.0
         num_batches = 0
         
-        for world_points, pixel_coords, camera_indices in dataloader:
+        for world_points, pixels, camera_indices in dataloader:
             optimizer.zero_grad()
-            
-            # Reshape for batch processing
-            camera_idx = camera_indices.item()
-            
+                        
             # Forward pass
-            predicted_pixels = model.project_point(world_points.T, camera_idx)
+            predicted_pixels = model.project_points(world_points, camera_indices)
             
             # Compute loss
-            loss = criterion(predicted_pixels, pixel_coords)
+            loss = criterion(predicted_pixels, pixels)
             
             # Backward pass
             loss.backward()
@@ -154,7 +120,7 @@ def train_model(model: CameraOptimizer, dataloader: DataLoader, num_epochs: int 
         avg_loss = total_loss / num_batches if num_batches > 0 else 0
         losses.append(avg_loss)
         
-        if epoch % 100 == 0:
+        if epoch % 10 == 0:
             print(f"Epoch {epoch}, Loss: {avg_loss:.6f}")
     
     return losses
@@ -168,12 +134,10 @@ def evaluate_model(model: CameraOptimizer, dataloader: DataLoader):
     
     with torch.no_grad():
         for world_points, pixel_coords, camera_indices in dataloader:
-            camera_idx = camera_indices.item()
-            
-            predicted_pixels = model.project_point(world_points.T, camera_idx)
+            predicted_pixels = model.project_points(world_points, camera_indices)
             error = torch.norm(predicted_pixels - pixel_coords, dim=1)
-            total_error += error.item()
-            num_samples += 1
+            total_error += error.sum().item()
+            num_samples += len(error)
     
     avg_error = total_error / num_samples if num_samples > 0 else 0
     return avg_error
@@ -183,8 +147,8 @@ def main():
     parser = argparse.ArgumentParser(description='Optimize camera parameters using PyTorch')
     parser.add_argument('--noisy_cameras', default='cameras_noisy.json', help='Noisy cameras JSON file')
     parser.add_argument('--projection_results', default='projection_results.json', help='Projection results JSON file')
-    parser.add_argument('--epochs', type=int, default=1000, help='Number of training epochs')
-    parser.add_argument('--lr', type=float, default=0.01, help='Learning rate')
+    parser.add_argument('--epochs', type=int, default=500, help='Number of training epochs')
+    parser.add_argument('--lr', type=float, default=0.001, help='Learning rate')
     parser.add_argument('--batch_size', type=int, default=1, help='Batch size')
     parser.add_argument('--device', default='cpu', help='Device to use (cpu/cuda)')
     
@@ -206,7 +170,7 @@ def main():
     # Create model
     model = CameraOptimizer(noisy_cameras, device)
     print(f"Model created with {model.adjustments.get_total_parameters()} parameters")
-    print(f"Parameters per camera: {model.adjustments.get_parameters_per_camera()}")
+    print(f"Parameters per camera: {model.adjustments.get_total_parameters() / len(noisy_cameras)}")
     
     # Train model
     print("Training model...")

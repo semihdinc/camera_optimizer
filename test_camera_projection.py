@@ -9,7 +9,7 @@ def load_cameras(json_file):
     return [Camera(camera_dict) for camera_dict in data['cameras']]
 
 # Load cameras from JSON file
-cameras = load_cameras('cameras_noisy.json')
+cameras = load_cameras('cameras.json')
 
 # Sample 3D point in world coordinates
 X_world = np.array([
@@ -38,16 +38,14 @@ for camera in cameras:
     print("Projected pixel coordinates (u, v):")
     print(uv)
 
-    # Save camera id, world point, and corresponding pixel in a dict
-    for i in range(X_world.shape[0]):
-        result = {
-            'camera_id': camera.id,
-            'world_point': X_world[i].tolist(),
-            'pixel': uv[i].tolist()
-        }
-        projection_results.append(result)
-    # Optionally, print or use projection_results as needed
+    # Save all world points and their projections for this camera in a single dict
+    result = {
+        'camera_id': camera.id,
+        'world_points': X_world.tolist(),
+        'pixels': uv.tolist()
+    }
+    projection_results.append(result)
 
 # Save projection results to a JSON file
-with open('projection_results_noisy.json', 'w') as f:
+with open('projection_results2.json', 'w') as f:
     json.dump(projection_results, f, indent=4)
