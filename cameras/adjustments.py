@@ -8,8 +8,7 @@ for correcting noisy camera intrinsics and extrinsics.
 import torch
 import torch.nn as nn
 from typing import List, Tuple
-import numpy as np
-
+from cameras.camera import Camera
 
 class Adjustments(nn.Module):
     """
@@ -69,3 +68,39 @@ class Adjustments(nn.Module):
                     'std': self.translation_deltas.std().item()
                 }
             }
+
+class CameraOptimizer(nn.Module):
+    """
+    PyTorch module for optimizing camera parameters.
+    
+    This module uses the Adjustments class to learn correction parameters
+    for both intrinsics and extrinsics to correct the noisy camera parameters.
+    """
+    
+    def __init__(self, noisy_cameras: List[Camera], device='cpu'):
+        super(CameraOptimizer, self).__init__()
+        self.device = device
+        self.num_cameras = len(noisy_cameras)
+        
+        # Store original noisy parameters
+        self.noisy_cameras = noisy_cameras
+        
+        # Create adjustments module
+        self.adjustments = Adjustments(self.num_cameras, device)
+           
+    def forward(self, X_world: torch.Tensor, camera_indices: torch.Tensor) -> torch.Tensor:
+        """Project a 3D point using corrected camera parameters."""
+        projected_pixels = []
+        for id, cam in enumerate(camera_indices):
+            # Get adjustments for this camera
+            intrinsic_deltas = self.adjustments.get_intrinsic_adjustments(cam)
+            rotation_deltas, translation_deltas = self.adjustments.get_extrinsic_adjustments(cam)
+            
+            # Use the camera's projection method with corrections
+            camera = self.noisy_cameras[cam]
+            px = camera.project_to_image_with_corrections(
+                X_world[id], intrinsic_deltas, rotation_deltas, translation_deltas
+            )
+            projected_pixels.append(px)
+        
+        return torch.stack(projected_pixels, dim=0)
