@@ -1,0 +1,302 @@
+[
+    {
+        "camera_id": "camera_0",
+        "world_point": [
+            1,
+            2,
+            10
+        ],
+        "pixel": [
+            400.0,
+            400.0
+        ]
+    },
+    {
+        "camera_id": "camera_0",
+        "world_point": [
+            0,
+            0,
+            5
+        ],
+        "pixel": [
+            320.0,
+            240.0
+        ]
+    },
+    {
+        "camera_id": "camera_0",
+        "world_point": [
+            2,
+            -1,
+            8
+        ],
+        "pixel": [
+            520.0,
+            140.0
+        ]
+    },
+    {
+        "camera_id": "camera_0",
+        "world_point": [
+            -3,
+            4,
+            12
+        ],
+        "pixel": [
+            120.0,
+            506.6666666666667
+        ]
+    },
+    {
+        "camera_id": "camera_0",
+        "world_point": [
+            5,
+            5,
+            15
+        ],
+        "pixel": [
+            586.6666666666666,
+            506.6666666666667
+        ]
+    },
+    {
+        "camera_id": "camera_1",
+        "world_point": [
+            1,
+            2,
+            10
+        ],
+        "pixel": [
+            375.0,
+            350.0
+        ]
+    },
+    {
+        "camera_id": "camera_1",
+        "world_point": [
+            0,
+            0,
+            5
+        ],
+        "pixel": [
+            300.0,
+            200.0
+        ]
+    },
+    {
+        "camera_id": "camera_1",
+        "world_point": [
+            2,
+            -1,
+            8
+        ],
+        "pixel": [
+            487.5,
+            106.25
+        ]
+    },
+    {
+        "camera_id": "camera_1",
+        "world_point": [
+            -3,
+            4,
+            12
+        ],
+        "pixel": [
+            112.5,
+            450.0
+        ]
+    },
+    {
+        "camera_id": "camera_1",
+        "world_point": [
+            5,
+            5,
+            15
+        ],
+        "pixel": [
+            550.0,
+            450.0
+        ]
+    },
+    {
+        "camera_id": "camera_2",
+        "world_point": [
+            1,
+            2,
+            10
+        ],
+        "pixel": [
+            485.0,
+            470.0
+        ]
+    },
+    {
+        "camera_id": "camera_2",
+        "world_point": [
+            0,
+            0,
+            5
+        ],
+        "pixel": [
+            400.0,
+            300.0
+        ]
+    },
+    {
+        "camera_id": "camera_2",
+        "world_point": [
+            2,
+            -1,
+            8
+        ],
+        "pixel": [
+            612.5,
+            193.75
+        ]
+    },
+    {
+        "camera_id": "camera_2",
+        "world_point": [
+            -3,
+            4,
+            12
+        ],
+        "pixel": [
+            187.5,
+            583.3333333333334
+        ]
+    },
+    {
+        "camera_id": "camera_2",
+        "world_point": [
+            5,
+            5,
+            15
+        ],
+        "pixel": [
+            683.3333333333334,
+            583.3333333333334
+        ]
+    },
+    {
+        "camera_id": "camera_3",
+        "world_point": [
+            1,
+            2,
+            10
+        ],
+        "pixel": [
+            320.0,
+            390.0
+        ]
+    },
+    {
+        "camera_id": "camera_3",
+        "world_point": [
+            0,
+            0,
+            5
+        ],
+        "pixel": [
+            250.0,
+            250.0
+        ]
+    },
+    {
+        "camera_id": "camera_3",
+        "world_point": [
+            2,
+            -1,
+            8
+        ],
+        "pixel": [
+            425.0,
+            162.5
+        ]
+    },
+    {
+        "camera_id": "camera_3",
+        "world_point": [
+            -3,
+            4,
+            12
+        ],
+        "pixel": [
+            75.0,
+            483.3333333333333
+        ]
+    },
+    {
+        "camera_id": "camera_3",
+        "world_point": [
+            5,
+            5,
+            15
+        ],
+        "pixel": [
+            483.3333333333333,
+            483.3333333333333
+        ]
+    },
+    {
+        "camera_id": "camera_4",
+        "world_point": [
+            1,
+            2,
+            10
+        ],
+        "pixel": [
+            540.0,
+            530.0
+        ]
+    },
+    {
+        "camera_id": "camera_4",
+        "world_point": [
+            0,
+            0,
+            5
+        ],
+        "pixel": [
+            450.0,
+            350.0
+        ]
+    },
+    {
+        "camera_id": "camera_4",
+        "world_point": [
+            2,
+            -1,
+            8
+        ],
+        "pixel": [
+            675.0,
+            237.5
+        ]
+    },
+    {
+        "camera_id": "camera_4",
+        "world_point": [
+            -3,
+            4,
+            12
+        ],
+        "pixel": [
+            225.0,
+            650.0
+        ]
+    },
+    {
+        "camera_id": "camera_4",
+        "world_point": [
+            5,
+            5,
+            15
+        ],
+        "pixel": [
+            750.0,
+            650.0
+        ]
+    }
+]
