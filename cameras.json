@@ -1,8 +1,7 @@
 {
   "cameras": [
     {
-      "id": "camera_1",
-      "name": "Front Camera",
+      "id": "camera_0",
       "intrinsics": {
         "fx": 800,
         "fy": 800,
@@ -15,8 +14,7 @@
       }
     },
     {
-      "id": "camera_2", 
-      "name": "Right Camera",
+      "id": "camera_1", 
       "intrinsics": {
         "fx": 750,
         "fy": 750,
@@ -29,8 +27,7 @@
       }
     },
     {
-      "id": "camera_3",
-      "name": "Left Camera", 
+      "id": "camera_2",
       "intrinsics": {
         "fx": 850,
         "fy": 850,
@@ -43,8 +40,7 @@
       }
     },
     {
-      "id": "camera_4",
-      "name": "Top Camera",
+      "id": "camera_3",
       "intrinsics": {
         "fx": 700,
         "fy": 700,
@@ -57,8 +53,7 @@
       }
     },
     {
-      "id": "camera_5",
-      "name": "Back Camera",
+      "id": "camera_4",
       "intrinsics": {
         "fx": 900,
         "fy": 900,

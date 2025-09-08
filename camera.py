@@ -47,7 +47,6 @@ class Camera:
                 - 'pose': Dictionary with R (rotation matrix) and t (translation vector)
         """
         self.id = camera_dict['id']
-        self.name = camera_dict['name']
         
         # Extract intrinsics
         intrinsics = camera_dict['intrinsics']
