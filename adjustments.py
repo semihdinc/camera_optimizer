@@ -33,12 +33,12 @@ class Adjustments(nn.Module):
         self.device = device
         
         # Intrinsic adjustments: delta_fx, delta_fy, delta_cx, delta_cy for each camera
-        self.intrinsic_deltas = nn.Parameter(torch.zeros(num_cameras, 4, device=device))
+        self.intrinsic_deltas = nn.Parameter(torch.zeros(num_cameras, 4, device=device, dtype=torch.double))
         
         # Extrinsic adjustments: delta_R (rotation) and delta_t (translation) for each camera
         # For rotation, we use axis-angle representation (3 params per camera)
-        self.rotation_deltas = nn.Parameter(torch.zeros(num_cameras, 3, device=device))
-        self.translation_deltas = nn.Parameter(torch.zeros(num_cameras, 3, device=device))
+        self.rotation_deltas = nn.Parameter(torch.zeros(num_cameras, 3, device=device, dtype=torch.double))
+        self.translation_deltas = nn.Parameter(torch.zeros(num_cameras, 3, device=device, dtype=torch.double))
         
     def get_intrinsic_adjustments(self, camera_idx: int) -> torch.Tensor:
         """Get intrinsic adjustments for a specific camera."""

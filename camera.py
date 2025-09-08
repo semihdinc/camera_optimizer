@@ -160,19 +160,19 @@ class Camera:
         cx_corrected = self.cx + intrinsic_deltas[2]
         cy_corrected = self.cy + intrinsic_deltas[3]
         
-        # Create corrected intrinsic matrix
-        K_corrected = torch.tensor([
-            [fx_corrected, 0, cx_corrected],
-            [0, fy_corrected, cy_corrected],
-            [0, 0, 1]
-        ], device=self.device)
+        # Create corrected intrinsic matrix (preserve computational graph)
+        K_corrected = torch.stack([
+            torch.stack([fx_corrected, torch.zeros_like(fx_corrected), cx_corrected]),
+            torch.stack([torch.zeros_like(fy_corrected), fy_corrected, cy_corrected]),
+            torch.stack([torch.zeros_like(fx_corrected), torch.zeros_like(fx_corrected), torch.ones_like(fx_corrected)])
+        ]).to(dtype=fx_corrected.dtype)
         
         # Apply corrections to extrinsics
         rotation_angles_corrected = self.rotation_angles + rotation_deltas
         t_corrected = self.t + translation_deltas.unsqueeze(1)
         
         # Convert to rotation matrix
-        rot_matrix = self.axis_angle_to_rotation_matrix(rotation_angles_corrected)
+        rot_matrix = self.axis_angle_to_rotation_matrix(rotation_angles_corrected).to(dtype=X_world.dtype)
 
         # Project points
         X_cam = rot_matrix @ X_world.T + t_corrected  # (3, N)

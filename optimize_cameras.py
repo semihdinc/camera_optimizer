@@ -68,8 +68,8 @@ class ProjectionDataset(Dataset):
     
     def __getitem__(self, idx):
         item = self.data[idx]
-        world_points = torch.tensor(item['world_points'], device=self.device, dtype=torch.float32)
-        pixel_coords = torch.tensor(item['pixels'], device=self.device, dtype=torch.float32)
+        world_points = torch.tensor(item['world_points'], device=self.device, dtype=torch.double)
+        pixel_coords = torch.tensor(item['pixels'], device=self.device, dtype=torch.double)
         camera_idx = self.camera_id_to_idx[item['camera_id']]
         return world_points, pixel_coords, camera_idx
 
@@ -120,7 +120,7 @@ def train_model(model: CameraOptimizer, dataloader: DataLoader, num_epochs: int 
         avg_loss = total_loss / num_batches if num_batches > 0 else 0
         losses.append(avg_loss)
         
-        if epoch % 10 == 0:
+        if epoch % 100 == 0:
             print(f"Epoch {epoch}, Loss: {avg_loss:.6f}")
     
     return losses
@@ -147,7 +147,7 @@ def main():
     parser = argparse.ArgumentParser(description='Optimize camera parameters using PyTorch')
     parser.add_argument('--noisy_cameras', default='cameras_noisy.json', help='Noisy cameras JSON file')
     parser.add_argument('--projection_results', default='projection_results.json', help='Projection results JSON file')
-    parser.add_argument('--epochs', type=int, default=500, help='Number of training epochs')
+    parser.add_argument('--epochs', type=int, default=5000, help='Number of training epochs')
     parser.add_argument('--lr', type=float, default=0.001, help='Learning rate')
     parser.add_argument('--batch_size', type=int, default=1, help='Batch size')
     parser.add_argument('--device', default='cpu', help='Device to use (cpu/cuda)')
