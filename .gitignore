@@ -1,0 +1,3 @@
+__pycache__/*.pyc
+cameras/__pycache__/*.pyc
+data/__pycache__/*.pyc
