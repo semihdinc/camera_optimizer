@@ -167,26 +167,20 @@ class Camera:
             torch.stack([torch.zeros_like(fx_corrected), torch.zeros_like(fx_corrected), torch.ones_like(fx_corrected)])
         ]).to(dtype=fx_corrected.dtype)
         
-        # Apply corrections to extrinsics
+        # Apply corrections to Rotation
         rotation_angles_corrected = self.rotation_angles + rotation_deltas
-        t_corrected = self.t + translation_deltas.unsqueeze(1)
-        
-        # Convert to rotation matrix
         rot_matrix = self.axis_angle_to_rotation_matrix(rotation_angles_corrected).to(dtype=X_world.dtype)
+
+        # Apply corrections to Translation
+        t_corrected = self.t + translation_deltas.unsqueeze(1)
 
         # Project points
         X_cam = rot_matrix @ X_world.T + t_corrected  # (3, N)
-        # Check for points behind the camera (z <= 0)
-        z = X_cam[2, :]
-        if torch.any(z <= 0):
-            raise ValueError("Some points are behind the camera (z <= 0) after transformation.")
-
+        
         x_proj = K_corrected @ X_cam  # (3, N)
         u = x_proj[0, :] / x_proj[2, :]
         v = x_proj[1, :] / x_proj[2, :]
         return torch.stack([u, v], axis=1)  # (N, 2)
-
-        # INSERT_YOUR_CODE
     
     def __str__(self):
         """Return a string representation of all camera parameters in a compact way."""

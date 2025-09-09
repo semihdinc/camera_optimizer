@@ -1,7 +1,5 @@
 """
-Adjustments class for camera parameter optimization.
-
-This module contains the Adjustments class that manages all learnable parameters
+This module contains the corrector class that manages all learnable parameters
 for correcting noisy camera intrinsics and extrinsics.
 """
 
