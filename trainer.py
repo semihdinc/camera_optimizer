@@ -1,6 +1,4 @@
 """
-PyTorch-based camera parameter optimization script.
-
 This script learns adjustment parameters for noisy cameras using ground truth projections.
 It optimizes intrinsic and extrinsic parameters to minimize projection errors.
 """
@@ -9,18 +7,14 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
-from cameras.adjustments import CameraOptimizer
-from data.dataloader import load_data, create_dataloader
+from cameras.adjustments import CameraCorrector
+from data.dataloader import load_cameras, load_projection_data, create_dataloader
 
 import argparse
 import matplotlib.pyplot as plt
 
 class Trainer:
-    """
-    Trainer class for camera parameter optimization.
-    
-    This class handles data loading, model creation, optimization setup, training, and evaluation.
-    """
+    """Trainer class for camera parameter optimization."""
     
     def __init__(self, noisy_cameras_file: str, projection_results_file: str, 
                  device: str = 'cpu', lr: float = 0.001, batch_size: int = 1, seed: int = 42):
@@ -31,44 +25,33 @@ class Trainer:
         self.seed = seed
         
         # Set random seeds for reproducibility
-        self.set_seed(seed)
+        torch.manual_seed(seed)
         
-        # Load data
-        print("Loading data...")
-        self.noisy_cameras, self.projection_data, self.camera_id_to_idx = load_data(
-            noisy_cameras_file, projection_results_file
-        )
-        print(f"Loaded {len(self.noisy_cameras)} cameras and {len(self.projection_data)} projection samples")
+        # Load initial cameras
+        self.noisy_cameras, self.camera_id_to_idx = load_cameras(noisy_cameras_file)
+        print(f"Loaded {len(self.noisy_cameras)} cameras")
+
+        # Load projection data
+        self.projection_data = load_projection_data(projection_results_file)
+        print(f"Loaded {len(self.projection_data)} projection samples")
         
         # Create dataloader
-        self.dataloader = create_dataloader(
-            self.projection_data, self.camera_id_to_idx, batch_size, device
-        )
-        
+        self.dataloader = create_dataloader(self.projection_data, 
+                                            self.camera_id_to_idx, 
+                                            self.batch_size, 
+                                            self.device)
         # Create model
-        self.model = CameraOptimizer(self.noisy_cameras, device)
+        self.model = CameraCorrector(self.noisy_cameras, device)
         
         # Create optimizer and loss function
         self.optimizer = optim.Adam(self.model.parameters(), lr=lr)
-        self.criterion = nn.MSELoss()
-    
-    def set_seed(self, seed: int):
-        """Set random seeds for reproducible results."""
-        torch.manual_seed(seed)
-        
-    def train(self, num_epochs: int = 1000):
-        """
-        Train the camera optimization model.
-        
-        Args:
-            num_epochs: Number of training epochs
+        self.loss_fn = nn.MSELoss()
             
-        Returns:
-            List of average losses per epoch
-        """
+    def train(self, num_epochs: int = 1000):
+        """Train the camera optimization model."""
         self.model.train()
+
         losses = []
-        
         for epoch in range(num_epochs):
             total_loss = 0.0
             num_batches = 0
@@ -80,7 +63,7 @@ class Trainer:
                 predicted_pixels = self.model(world_points, camera_indices)
                 
                 # Compute loss
-                loss = self.criterion(predicted_pixels, pixels)
+                loss = self.loss_fn(predicted_pixels, pixels)
                 
                 # Backward pass
                 loss.backward()
@@ -120,17 +103,17 @@ class Trainer:
     
     def get_adjustment_summary(self):
         """Get summary statistics of adjustment parameters."""
-        return self.model.adjustments.get_adjustment_summary()
+        return self.model.get_adjustment_summary()
     
     def get_total_parameters(self):
         """Get total number of parameters."""
-        return self.model.adjustments.get_total_parameters()
+        return self.model.get_total_parameters()
 
 
 def main():
     parser = argparse.ArgumentParser(description='Optimize camera parameters using PyTorch')
     parser.add_argument('--noisy_cameras', default='data/cameras_noisy.json', help='Noisy cameras JSON file')
-    parser.add_argument('--projection_results', default='data/projection_results.json', help='Projection results JSON file')
+    parser.add_argument('--projection_results', default='data/projections.json', help='Projection results JSON file')
     parser.add_argument('--epochs', type=int, default=5000, help='Number of training epochs')
     parser.add_argument('--lr', type=float, default=0.001, help='Learning rate')
     parser.add_argument('--batch_size', type=int, default=1, help='Batch size')

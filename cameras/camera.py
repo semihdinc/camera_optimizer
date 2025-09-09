@@ -132,7 +132,7 @@ class Camera:
         if X_world.shape[0] == 0:
             return torch.empty((0, 2), device=self.device)
 
-        rot_matrix = self.axis_angle_to_rotation_matrix(self.rotation_angles)
+        rot_matrix = self.axis_angle_to_rotation_matrix(self.rotation_angles).to(dtype=X_world.dtype)
 
         # Project points
         X_cam = rot_matrix @ X_world.T + self.t  # (3, N)
@@ -186,5 +186,14 @@ class Camera:
         v = x_proj[1, :] / x_proj[2, :]
         return torch.stack([u, v], axis=1)  # (N, 2)
 
+        # INSERT_YOUR_CODE
     
+    def __str__(self):
+        """Return a string representation of all camera parameters in a compact way."""
+        return (
+            f"Camera ID: {self.id}\n"
+            f"  fx={self.fx:.4f}, fy={self.fy:.4f}, cx={self.cx:.2f}, cy={self.cy:.2f}\n"
+            f"  Rotation angles (rad): {self.rotation_angles.tolist()}\n"
+            f"  Translation (t): {self.t.tolist()}"
+        )
 
