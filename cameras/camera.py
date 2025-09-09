@@ -90,11 +90,11 @@ class Camera:
         sin_angle = torch.sin(angle)
         
         # Rodrigues' formula
-        K = torch.tensor([
-            [0, -axis[2], axis[1]],
-            [axis[2], 0, -axis[0]],
-            [-axis[1], axis[0], 0]
-        ], device=self.device)
+        K = torch.stack([
+            torch.stack([torch.tensor(0., device=self.device), -axis[2], axis[1]]),
+            torch.stack([axis[2], torch.tensor(0., device=self.device), -axis[0]]),
+            torch.stack([-axis[1], axis[0], torch.tensor(0., device=self.device)])
+        ])
         
         R = torch.eye(3, device=self.device) + sin_angle * K + (1 - cos_angle) * (K @ K)
         return R
